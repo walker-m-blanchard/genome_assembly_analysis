@@ -3,33 +3,28 @@ import sys
 
 NTS = ['A', 'T', 'G', 'C']
 
-def build_kmer(n, counter, prefix):
-    if n == 0:
-        counter[prefix] = 0
-    else:
-        for nt in NTS:
-            new_kmer = prefix + nt
-            build_kmer(n - 1, counter, new_kmer)
-
 k_value = int(sys.argv[1])
 
 kmers = {}
-build_kmer(k_value, kmers, '')
-
-scaffolds = ['']
-i = 0
+scaffolds = []
+i = -1
 with open(sys.argv[2], 'r') as f:
     for line in f:
         if line.startswith('>'):
             i += 1
             scaffolds.append('')
         else:
-            scaffolds[i] += line.strip()
+            scaffolds[i] += line.strip().upper()
 
-for i in range(len(scaffolds)):
-    for j in range(len(scaffolds[i])):
-        if scaffolds[i][j:j+k_value] in kmers:
-            kmers[scaffolds[i][j:j+k_value]] += 1
+for scaffold in scaffolds:
+    for j in range(len(scaffold) - k_value + 1):
+        kmer = scaffold[j:j+k_value]
+        if not all(nt in NTS for nt in kmer):
+            continue
+        elif kmer in kmers:
+            kmers[kmer] += 1
+        else:
+            kmers[kmer] = 1
 
 max_heap = []
 for key, value in kmers.items():
